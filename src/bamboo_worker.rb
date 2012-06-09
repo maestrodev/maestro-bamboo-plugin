@@ -3,17 +3,6 @@ require 'maestro_agent'
 require 'bamboo-client'
 require 'open-uri'
 
-module Bamboo
-  module Client
-    class Rest < Abstract
-      def builds
-        get("result/").auto_expand Build, @http
-      end
-    end
-  end
-end
-
-
 module MaestroDev
   class BambooWorker < Maestro::MaestroWorker
 
