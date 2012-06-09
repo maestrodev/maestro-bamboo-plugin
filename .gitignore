@@ -1,0 +1,6 @@
+Gemfile.lock
+
+.bundle
+vendor
+package
+maestro-bamboo-plugin-*.zip
