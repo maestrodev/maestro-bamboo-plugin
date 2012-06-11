@@ -17,6 +17,7 @@ This Bamboo plugin requires a few inputs:
 
 * **host** (hostname of the bamboo server)
 * **port** (port bamboo is bound to)
+* **use_ssl** (https or http?)
 * **username** (user for logging into bamboo)
 * **password** (password for bamboo)
 * **web_path** (context path of bamboo app)
