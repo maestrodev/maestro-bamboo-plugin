@@ -27,6 +27,8 @@ describe MaestroDev::BambooWorker do
                               'password' => 'bamboo',
                               'plan' => 'CP',
                               'project' => 'Centrepoint',
+                              'use_ssl' => false,
+                              'web_path' => '/'
                               }})
                               
     @test_participant.expects(:workitem => wi.to_h).at_least_once
@@ -35,7 +37,7 @@ describe MaestroDev::BambooWorker do
     
     @test_participant.expects(:queue_plan)
     @test_participant.expects(:get_result_log)
-    state = mock(:state => "Hello")
+    state = mock(:state => "Hello", :url => "google.com")
     @test_participant.expects(:wait_for_job => state)
   
     @test_participant.build
@@ -51,6 +53,7 @@ describe MaestroDev::BambooWorker do
                               'password' => 'bamboo',
                               'plan' => 'CP',
                               'project' => 'Centrepoint',
+                              'use_ssl' => false
                               }})
     @test_participant.expects(:workitem => wi.to_h).at_least_once
 

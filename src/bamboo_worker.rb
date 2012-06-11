@@ -3,28 +3,33 @@ require 'maestro_agent'
 require 'bamboo-client'
 require 'open-uri'
 
+
 module MaestroDev
   class BambooWorker < Maestro::MaestroWorker
 
     def validate_fields
-      fields = workitem['fields']
-      fields['__error__'] = ''
+      set_error('')
       
-      raise 'Invalid Field Set, Missing host' if fields['host'].nil?
-      raise 'Invalid Field Set, Missing port' if fields['port'].nil?
-      raise 'Invalid Field Set, Missing username' if fields['username'].nil?
-      raise 'Invalid Field Set, Missing password' if fields['password'].nil?
-      raise 'Invalid Field Set, Missing project' if fields['project'].nil?
-      raise 'Invalid Field Set, Missing plan' if fields['plan'].nil?            
+      raise 'Invalid Field Set, Missing host' if get_field('host').nil?
+      raise 'Invalid Field Set, Missing port' if get_field('port').nil?
+      raise 'Invalid Field Set, Missing username' if get_field('username').nil?
+      raise 'Invalid Field Set, Missing password' if get_field('password').nil?
+      raise 'Invalid Field Set, Missing project' if get_field('project').nil?
+      raise 'Invalid Field Set, Missing plan' if get_field('plan').nil?      
+      raise 'Invalid Field Set, Missing use_ssl' if get_field('use_ssl').nil?            
       
-      fields["web_path"] = "/#{fields["web_path"].andand.gsub(/^\//, '')}" unless fields['web_path'].nil? or fields['web_path'].empty?
-      
-      fields 
+      set_field("web_path", "/#{get_field("web_path").andand.gsub(/^\//, '')}") unless get_field('web_path').nil? or get_field('web_path').empty?
     end
     
     def queue_plan
       retryable(:tries => 5, :on => Exception) do
-        @queued_data = @plan.queue.data
+        Net::HTTP.start(get_field('host'), get_field('port')) {|http|
+          http.use_ssl = get_field('use_ssl')
+          req = Net::HTTP::Post.new("/rest/api/latest/queue/#{@plan.key}.json", initheader = {'Accept' => 'json'})
+          req.basic_auth get_field('username'), get_field('password')
+          response = http.request(req)
+          @queued_data = JSON.parse response.body
+        }
       end
       
       Maestro.log.debug "Queued Bamboo Job With Result #{@queued_data.to_json}"
@@ -34,6 +39,7 @@ module MaestroDev
     def wait_for_job
       build = @client.results.last
       write_output "Waiting For Bamboo Build #{@queued_data['buildNumber']}\n"
+
       while(build.life_cycle_state == "InProgress" or build.number != @queued_data['buildNumber'])
         sleep 5
         build = @client.results.last
@@ -42,38 +48,33 @@ module MaestroDev
       @client.results.last
     end
     
-    def get_result_log
-      build = @client.results.last      
-      url = "http://#{@fields['username']}:#{@fields['password']}@#{@fields['host']}:#{@fields['port']}#{@fields['web_path']}/download/#{@plan.key}-JOB1/build_logs/#{@plan.key}-JOB1-#{build.number}.log"
-      open(url) do |f|
-        write_output f.read
-      end
-    end
-    
     def connect
-      @client = Bamboo::Client.for :rest, "http://#{@fields['username']}:#{@fields['password']}@#{@fields['host']}:#{@fields['port']}#{@fields['web_path']}"
-
-      @plan = @client.plans.first
+      @scheme = get_field('use_ssl') ? 'https' : 'http'
+      @client = Bamboo::Client.for :rest, "#{@scheme}://#{get_field('host')}:#{get_field('port')}#{get_field('web_path')}"
+      @client.login get_field('username'), get_field('password')
       
+      @plan = @client.plans.find{|plan| plan.name.match(/#{get_field('plan')}/) and plan.name.match(/#{get_field('project')}/) }
+      raise "Plan #{get_field('plan')}  Not Found" if @plan.nil?
       true
     end
     
     def build
       begin
-        Maestro.log.info "Starting Bamboo participant"
-        @fields = validate_fields
+        Maestro.log.info "Starting Bamboo Worker"
+        validate_fields
         
         raise "Connection refused - Connection refused" if !connect
                 
         queue_plan
 
-        if wait_for_job.state == "Failed"
+        result = wait_for_job
+
+        write_output("View Results At #{result.url}\n")
+        if result.state == :failed
           set_error( "Bamboo Job Returned Failed" )
         end
-        get_result_log
         
       rescue Exception => e
-        puts e, e.backtrace
         set_error(e.message)
       end
       
