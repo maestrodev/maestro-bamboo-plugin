@@ -1,5 +1,7 @@
 Gemfile.lock
-
+target/
+.idea/
+*.iml
 .bundle
 vendor
 package
