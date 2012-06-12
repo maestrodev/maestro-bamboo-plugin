@@ -52,7 +52,7 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>maestro-bamboo-plugin-${project.version}.zip</file>
+                  <file>${project.artifactId}-${project.version}.zip</file>
                   <type>zip</type>
                   <classifier>bin</classifier>
                 </artifact>
@@ -66,9 +66,6 @@
   <profiles>
     <profile>
       <id>release</id>
-      <properties>
-        <repository.url>https://repo.maestrodev.com/archiva/repository/com.maestrodev.lucee.releases/</repository.url>
-      </properties>
       <build>
         <plugins>
           <plugin>
