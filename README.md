@@ -1,8 +1,8 @@
 # maestro-bamboo-plugin
-Maestro plugin providing a "task" to control bamboo. This
-plugin is a Ruby-based deployable that gets delivered as a Zip file.
+Maestro plugin providing a "task" to control Bamboo. This
+plugin is a Ruby-based deployable that gets delivered as a ZIP file.
 
-<http://bamboo.com/>
+<http://www.atlassian.com/bamboo/>
 
 Manifest:
 
@@ -15,14 +15,14 @@ This Bamboo plugin requires a few inputs:
 
 
 
-* **host** (hostname of the bamboo server)
-* **port** (port bamboo is bound to)
+* **host** (hostname of the Bamboo server)
+* **port** (port Bamboo is bound to)
 * **use_ssl** (https or http?)
-* **username** (user for logging into bamboo)
-* **password** (password for bamboo)
-* **web_path** (context path of bamboo app)
-* **project** (name of bamboo project)
-* **plan** (name of bamboo plan to execute)
+* **username** (user for logging into Bamboo)
+* **password** (password for Bamboo)
+* **web_path** (context path of Bamboo app)
+* **project** (name of Bamboo project)
+* **plan** (name of Bamboo plan to execute)
 
 ## License
 Apache 2.0 License: <http://www.apache.org/licenses/LICENSE-2.0.html>
