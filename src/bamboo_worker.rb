@@ -39,8 +39,8 @@ module MaestroDev
     def wait_for_job
       build = @client.results.last
       write_output "Waiting For Bamboo Build #{@queued_data['buildNumber']}\n"
-
-      while(build.life_cycle_state == "InProgress" or build.number != @queued_data['buildNumber'])
+      
+      while(build.nil? or build.life_cycle_state == "InProgress" or build.number != @queued_data['buildNumber'])
         sleep 5
         build = @client.results.last
       end
