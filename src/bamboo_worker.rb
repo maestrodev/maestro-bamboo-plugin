@@ -22,16 +22,7 @@ module MaestroDev
     end
     
     def queue_plan
-      retryable(:tries => 5, :on => Exception) do
-        Net::HTTP.start(get_field('host'), get_field('port')) {|http|
-          http.use_ssl = get_field('use_ssl')
-          req = Net::HTTP::Post.new("/rest/api/latest/queue/#{@plan.key}.json", initheader = {'Accept' => 'json'})
-          req.basic_auth get_field('username'), get_field('password')
-          response = http.request(req)
-          @queued_data = JSON.parse response.body
-        }
-      end
-      
+      @queued_data = @plan.queue.data
       Maestro.log.debug "Queued Bamboo Job With Result #{@queued_data.to_json}"
       write_output "Bamboo Build Triggered With Reason #{@queued_data["triggerReason"]}\n"
     end
@@ -55,6 +46,7 @@ module MaestroDev
       
       @plan = @client.plans.find{|plan| plan.name.match(/#{get_field('plan')}/) and plan.name.match(/#{get_field('project')}/) }
       raise "Plan #{get_field('plan')}  Not Found" if @plan.nil?
+      write_output "Found Plan #{@plan.name}\n"
       true
     end
     
