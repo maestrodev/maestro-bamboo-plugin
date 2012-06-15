@@ -30,6 +30,8 @@ module MaestroDev
           case response.code
             when '200'
               queued_data = JSON.parse response.body
+            when '401'
+              raise "Authentication Failed"
             else
               raise JSON.parse(response.body)['message']
           end
@@ -50,6 +52,8 @@ module MaestroDev
           case response.code
             when '200'
               result = JSON.parse response.body
+            when '401'
+              raise "Authenitcation Failed"
             else
               raise JSON.parse(response.body)['message']
           end
