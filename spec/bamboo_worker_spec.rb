@@ -25,8 +25,7 @@ describe MaestroDev::BambooWorker do
                               'port' => '8085',
                               'username' => 'bamboo',
                               'password' => 'bamboo',
-                              'plan' => 'CP',
-                              'project' => 'Centrepoint',
+                              'plan_key' => 'CP',
                               'use_ssl' => false,
                               'web_path' => '/'
                               }})
@@ -51,8 +50,7 @@ describe MaestroDev::BambooWorker do
                               'port' => '8085',
                               'username' => 'bamboo',
                               'password' => 'bamboo',
-                              'plan' => 'CP',
-                              'project' => 'Centrepoint',
+                              'plan_key' => 'CP',
                               'use_ssl' => false
                               }})
     @test_participant.expects(:workitem => wi.to_h).at_least_once
@@ -64,5 +62,60 @@ describe MaestroDev::BambooWorker do
   
     wi.fields['__error__'].should eql("Connection refused - Connection refused")
   end
+  
+  # it "should queue a build for real" do
+  #   wi = Ruote::Workitem.new({'fields' => { 
+  #                             'host' => '127.0.0.1',
+  #                             'port' => '8085',
+  #                             'username' => 'kelly',
+  #                             'password' => '',
+  #                             'plan_key' => 'SOMEKEY',
+  #                             'use_ssl' => false,
+  #                             'web_path' => '/'
+  #                             }})
+  # 
+  #   @test_participant = MaestroDev::BambooWorker.new                              
+  #   @test_participant.expects(:workitem => wi.to_h).at_least_once
+  # 
+  #   @test_participant.build
+  #   
+  #   wi.fields['__error__'].should eql('')
+  #   
+  #   wi = Ruote::Workitem.new({'fields' => { 
+  #                             'host' => '127.0.0.1',
+  #                             'port' => '8085',
+  #                             'username' => 'kelly',
+  #                             'password' => '',
+  #                             'plan_key' => 'TEST',
+  #                             'use_ssl' => false,
+  #                             'web_path' => '/'
+  #                             }})
+  # 
+  #   @test_participant = MaestroDev::BambooWorker.new                              
+  #   @test_participant.expects(:workitem => wi.to_h).at_least_once
+  # 
+  #   @test_participant.build
+  #   
+  #   wi.fields['__error__'].should eql('')  
+  #   
+  #   wi = Ruote::Workitem.new({'fields' => { 
+  #                             'host' => '127.0.0.1',
+  #                             'port' => '8085',
+  #                             'username' => 'kelly',
+  #                             'password' => '',
+  #                             'plan_key' => 'NOTREAL',
+  #                             'use_ssl' => false,
+  #                             'web_path' => '/'
+  #                             }})
+  # 
+  #   @test_participant = MaestroDev::BambooWorker.new                              
+  #   @test_participant.expects(:workitem => wi.to_h).at_least_once
+  # 
+  #   @test_participant.build
+  #   
+  #   wi.fields['__error__'].should eql('Plan Key NOTREAL Not Found')    
+  #     
+  # end
+  
   
 end

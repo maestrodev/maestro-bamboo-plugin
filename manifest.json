@@ -22,8 +22,7 @@
 		  "username":{"required":true,"type":"String","value":""},
 		  "password":{"required":true,"type":"Password","value":""},
 		  "web_path":{"required":false,"type":"String","value":""},		  
-		  "project":{"required":true,"type":"String","value":""},
-		  "plan":{"required":true,"type":"String","value":""}},
+		  "plan_key":{"required":true,"type":"String","value":""}},
       "outputs" : {"output" : {"type" : "String"}},
       "tool_name":"Build"
     }

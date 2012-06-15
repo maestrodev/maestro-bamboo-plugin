@@ -1,8 +1,6 @@
 
 require 'maestro_agent'
 require 'bamboo-client'
-require 'open-uri'
-
 
 module MaestroDev
   class BambooWorker < Maestro::MaestroWorker
@@ -14,11 +12,20 @@ module MaestroDev
       raise 'Invalid Field Set, Missing port' if get_field('port').nil?
       raise 'Invalid Field Set, Missing username' if get_field('username').nil?
       raise 'Invalid Field Set, Missing password' if get_field('password').nil?
-      raise 'Invalid Field Set, Missing project' if get_field('project').nil?
-      raise 'Invalid Field Set, Missing plan' if get_field('plan').nil?      
+      raise 'Invalid Field Set, Missing plan' if get_field('plan_key').nil?      
       raise 'Invalid Field Set, Missing use_ssl' if get_field('use_ssl').nil?            
       
       set_field("web_path", "/#{get_field("web_path").andand.gsub(/^\//, '')}") unless get_field('web_path').nil? or get_field('web_path').empty?
+    end
+    
+    def connect
+      @scheme = get_field('use_ssl') ? 'https' : 'http'
+      @client = Bamboo::Client.for :rest, "#{@scheme}://#{get_field('host')}:#{get_field('port')}#{get_field('web_path')}"
+      @client.login get_field('username'), get_field('password')
+
+      @plan = @client.plans.find{|p| p.key.split(/\-/)[1].andand.match(/#{get_field('plan_key')}/) }
+      raise "Plan Key #{get_field('plan_key')} Not Found" if @plan.nil?
+      true
     end
     
     def queue_plan
@@ -37,25 +44,15 @@ module MaestroDev
     end
     
     def wait_for_job
-      build = @client.results.last
-      write_output "Waiting For Bamboo Build #{@queued_data['buildNumber']}\n"
-      
+      build = @client.results.find{|result| result.key.match(/#{@plan.key}/)}
+      write_output "Waiting For Bamboo Build #{@queued_data['buildNumber']} Of Plan #{@plan.name}\n"
+
       while(build.nil? or build.life_cycle_state == "InProgress" or build.number != @queued_data['buildNumber'])
         sleep 5
-        build = @client.results.last
+        build = @client.results.find{|result| result.key.match(/#{@plan.key}/)}
       end
-      write_output "Bamboo Build #{build.number} LifeCycle [#{build.life_cycle_state}] State [#{build.state}]\n"
-      @client.results.last
-    end
-    
-    def connect
-      @scheme = get_field('use_ssl') ? 'https' : 'http'
-      @client = Bamboo::Client.for :rest, "#{@scheme}://#{get_field('host')}:#{get_field('port')}#{get_field('web_path')}"
-      @client.login get_field('username'), get_field('password')
-      
-      @plan = @client.plans.find{|plan| plan.name.match(/#{get_field('plan')}/) and plan.name.match(/#{get_field('project')}/) }
-      raise "Plan #{get_field('plan')}  Not Found" if @plan.nil?
-      true
+      write_output "Bamboo Build #{build.number} For #{build.key} Has LifeCycle [#{build.life_cycle_state}] State [#{build.state}]\n"
+      @client.results.find{|result| result.key.match(/#{@plan.key}/)}
     end
     
     def build
