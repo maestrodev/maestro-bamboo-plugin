@@ -7,7 +7,7 @@ gem 'zippy'
 gem 'maestro_agent', '0.1.3.snapshot'
 
 #dependencies
-gem "bamboo-client", "0.0.9"
+
 
 group :test do
   gem "mocha", "0.10.0"

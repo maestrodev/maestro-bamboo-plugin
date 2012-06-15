@@ -1,17 +1,12 @@
 [{
     "name" : "bamboo",
-    "description" : "Puts A Bamboo Plan In The Build Queue<br>[host] Hostname Of The Bamboo Server<br>[port] Port That Bamboo Is Running On<br>[username] Bamboo User<br>[host] Password For The Bamboo User <br>[project] Name Of The Project<br>[plan] Name Of The Plan To Queue",
+    "description" : "Puts A Bamboo Plan In The Build Queue<br>[host] Hostname Of The Bamboo Server<br>[port] Port That Bamboo Is Running On<br>[username] Bamboo User<br>[host] Password For The Bamboo User <br>[project key] Name Of The Project<br>[plan key] Name Of The Plan To Queue",
     "license" : "Apache 2.0",
     "author": "Kelly Plummer",
     "version": "1.0-SNAPSHOT",
     "class": "MaestroDev::BambooWorker",
     "type":"ruby",
     "dependencies":[
-		{
-			"name" : "bamboo-client",
-			"version" : "0.0.9",
-			"source" : "http://rubygems.org/"
-		}
   	],
     "task":{
       "command" : "/bambooplugin/build",    
@@ -22,7 +17,8 @@
 		  "username":{"required":true,"type":"String","value":""},
 		  "password":{"required":true,"type":"Password","value":""},
 		  "web_path":{"required":false,"type":"String","value":""},		  
-		  "plan_key":{"required":true,"type":"String","value":""}},
+		  "plan_key":{"required":true,"type":"String","value":""},
+		  "project_key":{"required":true,"type":"String","value":""}},		  
       "outputs" : {"output" : {"type" : "String"}},
       "tool_name":"Build"
     }
