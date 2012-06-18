@@ -1,6 +1,6 @@
 [{
     "name" : "bamboo",
-    "description" : "Puts A Bamboo Plan In The Build Queue<br>[host] Hostname Of The Bamboo Server<br>[port] Port That Bamboo Is Running On<br>[username] Bamboo User<br>[host] Password For The Bamboo User <br>[project key] Name Of The Project<br>[plan key] Name Of The Plan To Queue",
+    "description" : "Puts A Bamboo Plan In The Build Queue<br>[host] Hostname Of The Bamboo Server<br>[port] Port That Bamboo Is Running On<br>[username] Bamboo User<br>[host] Password For The Bamboo User <br>[project key] Key For The Project<br>[plan key] Key Of The Plan To Queue",
     "license" : "Apache 2.0",
     "author": "Kelly Plummer",
     "version": "1.0-SNAPSHOT",
