@@ -21,8 +21,8 @@ This Bamboo plugin requires a few inputs:
 * **username** (user for logging into Bamboo)
 * **password** (password for Bamboo)
 * **web_path** (context path of Bamboo app)
-* **project** (name of Bamboo project)
-* **plan** (name of Bamboo plan to execute)
+* **project_key** (key of Bamboo project)
+* **plan_key** (key of Bamboo plan to execute)
 
 ## License
 Apache 2.0 License: <http://www.apache.org/licenses/LICENSE-2.0.html>
