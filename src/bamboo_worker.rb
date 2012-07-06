@@ -19,6 +19,17 @@ module MaestroDev
       set_field("web_path", "/#{get_field("web_path").andand.gsub(/^\//, '')}") unless get_field('web_path').nil? or get_field('web_path').empty?
     end
     
+    def parse_response(response)
+      body = response.body
+      begin
+        result = JSON.parse(body)
+      rescue Exception => e
+        #not json try xml
+        result = XmlSimple.xml_in(body)
+      end
+      result      
+    end
+    
     def queue_plan
       queued_data = nil
       retryable(:tries => 5, :on => Exception) do
@@ -29,11 +40,11 @@ module MaestroDev
           response = http.request(req)
           case response.code
             when '200'
-              queued_data = JSON.parse response.body
+              queued_data = parse_response(response)
             when '401'
               raise "Authentication Failed"
             else
-              raise JSON.parse(response.body)['message']
+              raise Exception.new(parse_response(response)["message"])
           end
         }
       end
@@ -49,13 +60,14 @@ module MaestroDev
           req = Net::HTTP::Get.new("/rest/api/latest/result/#{get_field('project_key')}-#{get_field('plan_key')}-#{build}.json", initheader = {'Accept' => 'json'})
           req.basic_auth get_field('username'), get_field('password')
           response = http.request(req)
+          
           case response.code
             when '200'
-              result = JSON.parse response.body
+              result = parse_response(response)
             when '401'
               raise "Authenitcation Failed"
             else
-              raise JSON.parse(response.body)['message']
+             raise Exception.new(parse_response(response)["message"])
           end
         }
       end
