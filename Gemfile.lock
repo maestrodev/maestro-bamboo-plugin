@@ -2,15 +2,10 @@ GEM
   remote: http://rubygems.org/
   specs:
     andand (1.3.1)
-    bamboo-client (0.0.9)
-      json
-      nokogiri
-      rest-client
     blankslate (2.1.2.4)
     bouncy-castle-java (1.5.0146.1)
     builder (2.1.2)
     columnize (0.3.6)
-    crack (0.1.8)
     diff-lcs (1.1.3)
     eventmachine (0.12.10-java)
     facter (1.6.3)
@@ -19,31 +14,19 @@ GEM
     grit (2.4.1)
       diff-lcs (~> 1.1)
       mime-types (~> 1.15)
-    hpricot (0.8.6-java)
-    httparty (0.6.1)
-      crack (= 0.1.8)
-    jenkins (0.6.8)
-      builder (~> 2.1.2)
-      hpricot
-      httparty (~> 0.6.1)
-      json_pure (>= 1.5.1)
-      term-ansicolor (>= 1.0.4)
-      thor (~> 0.14.2)
     jruby-openssl (0.7.7)
       bouncy-castle-java (>= 1.5.0146.1)
     json (1.7.5-java)
-    json_pure (1.7.5)
     little-plugger (1.1.3)
     logging (1.6.1)
       little-plugger (>= 1.1.2)
-    maestro_agent (0.1.3.snapshot)
+    maestro_agent (1.3.0)
       andand (= 1.3.1)
       builder (= 2.1.2)
       columnize (= 0.3.6)
       eventmachine (= 0.12.10)
       facter (= 1.6.3)
       grit (= 2.4.1)
-      jenkins (= 0.6.8)
       jruby-openssl
       json (>= 1.4.6)
       logging (= 1.6.1)
@@ -67,7 +50,6 @@ GEM
     net-scp (1.0.4)
       net-ssh (>= 1.99.1)
     net-ssh (2.2.1)
-    nokogiri (1.5.5-java)
     onstomp (1.0.5)
     parslet (1.2.1)
       blankslate (~> 2.0)
@@ -118,10 +100,8 @@ GEM
       ruby2ruby (>= 1.2.5)
       ruby_parser (>= 2.0.5)
       sexp_processor (>= 3.0.5)
-    term-ansicolor (1.0.7)
-    thor (0.14.6)
     tins (0.5.5)
-    tzinfo (0.3.33)
+    tzinfo (0.3.34)
     xml-simple (1.1.1)
     zippy (0.2.1)
       rubyzip (>= 0.9.1)
@@ -130,9 +110,8 @@ PLATFORMS
   java
 
 DEPENDENCIES
-  bamboo-client (= 0.0.9)
   bundler (>= 1.0.21)
-  maestro_agent (= 0.1.3.snapshot)
+  maestro_agent (>= 0.1.4)
   mocha (= 0.10.0)
   rake
   rcov (= 0.9.11)
