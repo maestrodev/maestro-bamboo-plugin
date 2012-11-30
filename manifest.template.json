@@ -1,0 +1,71 @@
+[
+  {
+    "name": "bamboo",
+    "description": "Puts A Bamboo Plan In The Build Queue",
+    "license": "Apache 2.0",
+    "author": "Kelly Plummer",
+    "version": "updated at build time",
+    "class": "MaestroDev::BambooWorker",
+    "type": "ruby",
+    "dependencies": [],
+    "task": {
+      "command": "/bambooplugin/build",
+      "inputs": {
+        "host": {
+          "required": true,
+          "type": "String",
+          "value": "localhost",
+          "description": "Hostname Of The Bamboo Server"
+        },
+        "port": {
+          "required": true,
+          "type": "Integer",
+          "value": 8080,
+          "description": "Port That Bamboo Is Running On"
+        },
+        "use_ssl": {
+          "required": true,
+          "type": "Boolean",
+          "value": false,
+          "description": "Connect to Bamboo using SSL"
+        },
+        "username": {
+          "required": true,
+          "type": "String",
+          "value": "",
+          "description": "Bamboo User"
+        },
+        "password": {
+          "required": true,
+          "type": "Password",
+          "value": "",
+          "description": "Password For The Bamboo User"
+        },
+        "web_path": {
+          "required": false,
+          "type": "String",
+          "value": "",
+          "description": "Path to the Bamboo webapp in the server"
+        },
+        "plan_key": {
+          "required": true,
+          "type": "String",
+          "value": "",
+          "description": "Key of the plan to queue"
+        },
+        "project_key": {
+          "required": true,
+          "type": "String",
+          "value": "Key For The Project to queue"
+        }
+      },
+      "outputs": {
+        "output": {
+          "type": "String"
+        }
+      },
+      "tool_name": "Build",
+      "icon" : "bamboo.png"
+    }
+  }
+]
