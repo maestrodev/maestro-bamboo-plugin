@@ -56,7 +56,8 @@
         "project_key": {
           "required": true,
           "type": "String",
-          "value": "Key For The Project to queue"
+          "value": "",
+          "description": "Key For The Project to queue"
         }
       },
       "outputs": {
