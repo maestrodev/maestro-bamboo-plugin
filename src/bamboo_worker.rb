@@ -23,9 +23,14 @@ module MaestroDev
       body = response.body
       begin
         result = JSON.parse(body)
-      rescue Exception => e
-        #not json try xml
-        result = XmlSimple.xml_in(body)
+      rescue JSON::ParserError => e
+        begin
+          #not json try xml
+          result = XmlSimple.xml_in(body)
+        rescue ArgumentError => xml_error
+          # not xml either, raise original exception
+          raise e
+        end
       end
       result      
     end
@@ -44,7 +49,7 @@ module MaestroDev
             when '401'
               raise "Authentication Failed"
             else
-              raise Exception.new(parse_response(response)["message"])
+              raise Exception.new("Error queuing plan: #{parse_response(response)["message"]}")
           end
         }
       end
@@ -67,7 +72,7 @@ module MaestroDev
             when '401'
               raise "Authenitcation Failed"
             else
-             raise Exception.new(parse_response(response)["message"])
+              raise Exception.new("Error getting results for build #{build}: #{parse_response(response)["message"]}")
           end
         }
       end
@@ -87,22 +92,17 @@ module MaestroDev
     end
     
     def build
-      begin
-        Maestro.log.info "Starting Bamboo Worker"
-        validate_fields
+      Maestro.log.info "Starting Bamboo Worker"
+      validate_fields
 
-        @queued_data = queue_plan        
-        Maestro.log.debug "Queued Bamboo Job With Result #{@queued_data.to_json}"
-        write_output "Bamboo Build Triggered With Reason #{@queued_data["triggerReason"]}\n"
-        
-        result = wait_for_job
+      @queued_data = queue_plan        
+      Maestro.log.debug "Queued Bamboo Job With Result #{@queued_data.to_json}"
+      write_output "Bamboo Build Triggered With Reason #{@queued_data["triggerReason"]}\n"
+      
+      result = wait_for_job
 
-        if result["state"].downcase == "failed"
-          set_error( "Bamboo Job Returned Failed" )
-        end
-        
-      rescue Exception => e
-        set_error(e.message)
+      if result["state"].downcase == "failed"
+        set_error( "Bamboo Job Returned Failed" )
       end
       
       Maestro.log.debug "Maestro::BambooParticipant::work complete!"
