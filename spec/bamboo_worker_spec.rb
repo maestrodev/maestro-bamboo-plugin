@@ -6,18 +6,18 @@ describe MaestroDev::BambooWorker do
   end
   
   it "should queue a build" do
-       wi = Ruote::Workitem.new({'fields' => { 
-                                 'host' => 'localhost',
-                                 'port' => '8085',
-                                 'username' => 'bamboo',
-                                 'password' => 'bamboo',
-                                 'plan_key' => 'CP',
-                                 'project_key' => 'PROJECTKEY',
-                                 'use_ssl' => false,
-                                 'web_path' => '/'
-                                 }})
+    wi = {'fields' => {
+        'host' => 'localhost',
+        'port' => '8085',
+        'username' => 'bamboo',
+        'password' => 'bamboo',
+        'plan_key' => 'CP',
+        'project_key' => 'PROJECTKEY',
+        'use_ssl' => false,
+        'web_path' => '/'
+    }}
                                  
-       @test_participant.expects(:workitem => wi.to_h).at_least_once
+       @test_participant.expects(:workitem => wi).at_least_once
        
        @test_participant.expects(:queue_plan => {"buildNumber" => 2})
        @test_participant.expects(:get_results_for_build => {"number" => 2, "lifeCycleState" => "Finished", "state" => "Successful"})
@@ -26,22 +26,22 @@ describe MaestroDev::BambooWorker do
      
        @test_participant.build
        
-       wi.fields['__error__'].should eql('')
+       wi['fields']['__error__'].should eql('')
      end
      
      it "should set error on error" do
-       wi = Ruote::Workitem.new({'fields' => { 
-                                 'host' => 'localhost',
-                                 'port' => '8085',
-                                 'username' => 'bamboo',
-                                 'password' => 'bamboo',
-                                 'plan_key' => 'CP',
-                                 'project_key' => 'PROJECTKEY',
-                                 'use_ssl' => false,
-                                 'web_path' => '/'
-                                 }})
+       wi = {'fields' => {
+           'host' => 'localhost',
+           'port' => '8085',
+           'username' => 'bamboo',
+           'password' => 'bamboo',
+           'plan_key' => 'CP',
+           'project_key' => 'PROJECTKEY',
+           'use_ssl' => false,
+           'web_path' => '/'
+       }}
                                  
-       @test_participant.expects(:workitem => wi.to_h).at_least_once
+       @test_participant.expects(:workitem => wi).at_least_once
        
        @test_participant.expects(:queue_plan => {"buildNumber" => 2})
        @test_participant.expects(:get_results_for_build => {"number" => 2, "lifeCycleState" => "Finished", "state" => "Failed"})
@@ -50,7 +50,7 @@ describe MaestroDev::BambooWorker do
      
        @test_participant.build
        
-       wi.fields['__error__'].should eql("Bamboo Job Returned Failed")
+       wi['fields']['__error__'].should eql("Bamboo Job Returned Failed")
      end
   
   # it "should queue a build for real" do

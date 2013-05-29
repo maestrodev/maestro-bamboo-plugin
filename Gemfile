@@ -1,19 +1,15 @@
-source :rubygems
-
-gem 'maestro_agent', '~>1.3.0'
+source "https://rubygems.org"
 
 #dependencies
+gem 'maestro_plugin'
 gem 'bamboo-client', '0.0.9'
 
 group :development do
-  gem 'zippy'
-  gem 'bundler', '>=1.0.21'
-  gem 'rake'
-  gem 'nokogiri'
-  gem 'git'
+  gem 'maestro-plugin-rake-tasks'
 end
 
 group :test do
+  gem 'andand'
   gem 'rspec'
   gem 'rspec-core'
   gem 'rcov', '0.9.11'

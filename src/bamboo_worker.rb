@@ -1,4 +1,4 @@
-require 'maestro_agent'
+require 'maestro_plugin'
 
 module MaestroDev
   class BambooWorker < Maestro::MaestroWorker
