@@ -8,7 +8,6 @@ GEM
       rest-client
     diff-lcs (1.1.3)
     git (1.2.5)
-    json (1.7.5)
     json (1.7.5-java)
     little-plugger (1.1.3)
     logging (1.8.0)
@@ -32,8 +31,6 @@ GEM
     nokogiri (1.5.5)
     nokogiri (1.5.5-java)
     rake (10.0.4)
-    rcov (0.9.11)
-    rcov (0.9.11-java)
     rest-client (1.6.7)
       mime-types (>= 1.16)
     rspec (2.11.0)
@@ -53,10 +50,9 @@ PLATFORMS
 
 DEPENDENCIES
   andand
-  bamboo-client (= 0.0.9)
+  bamboo-client (>= 0.0.9)
   maestro-plugin-rake-tasks
   maestro_plugin
-  mocha (= 0.10.0)
-  rcov (= 0.9.11)
+  mocha
   rspec
   rspec-core
