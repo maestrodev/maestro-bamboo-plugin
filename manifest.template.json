@@ -5,7 +5,7 @@
     "license": "Apache 2.0",
     "author": "Kelly Plummer",
     "version": "updated at build time",
-    "class": "MaestroDev::BambooWorker",
+    "class": "MaestroDev::BambooPlugin::BambooWorker",
     "type": "ruby",
     "dependencies": [],
     "task": {

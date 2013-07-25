@@ -1,113 +1,115 @@
 require 'maestro_plugin'
 
 module MaestroDev
-  class BambooWorker < Maestro::MaestroWorker
-
-    def validate_fields
+  module BambooPlugin
+    class BambooWorker < Maestro::MaestroWorker
+  
+      def validate_fields
+        
+        set_error('')
+        
+        raise 'Invalid Field Set, Missing host' if get_field('host').nil?
+        raise 'Invalid Field Set, Missing port' if get_field('port').nil?
+        raise 'Invalid Field Set, Missing username' if get_field('username').nil?
+        raise 'Invalid Field Set, Missing password' if get_field('password').nil?
+        raise 'Invalid Field Set, Missing plan key' if get_field('plan_key').nil?     
+        raise 'Invalid Field Set, Missing project key' if get_field('project_key').nil?      
+        raise 'Invalid Field Set, Missing use_ssl' if get_field('use_ssl').nil?            
+        
+        @scheme = get_field('use_ssl') ? 'https' : 'http'
+        set_field("web_path", "/#{get_field("web_path").andand.gsub(/^\//, '')}") unless get_field('web_path').nil? or get_field('web_path').empty?
+      end
       
-      set_error('')
-      
-      raise 'Invalid Field Set, Missing host' if get_field('host').nil?
-      raise 'Invalid Field Set, Missing port' if get_field('port').nil?
-      raise 'Invalid Field Set, Missing username' if get_field('username').nil?
-      raise 'Invalid Field Set, Missing password' if get_field('password').nil?
-      raise 'Invalid Field Set, Missing plan key' if get_field('plan_key').nil?     
-      raise 'Invalid Field Set, Missing project key' if get_field('project_key').nil?      
-      raise 'Invalid Field Set, Missing use_ssl' if get_field('use_ssl').nil?            
-      
-      @scheme = get_field('use_ssl') ? 'https' : 'http'
-      set_field("web_path", "/#{get_field("web_path").andand.gsub(/^\//, '')}") unless get_field('web_path').nil? or get_field('web_path').empty?
-    end
-    
-    def parse_response(response)
-      body = response.body
-      begin
-        result = JSON.parse(body)
-      rescue JSON::ParserError => e
+      def parse_response(response)
+        body = response.body
         begin
-          #not json try xml
-          result = XmlSimple.xml_in(body)
-        rescue ArgumentError => xml_error
-          # not xml either, raise original exception
-          raise e
+          result = JSON.parse(body)
+        rescue JSON::ParserError => e
+          begin
+            #not json try xml
+            result = XmlSimple.xml_in(body)
+          rescue ArgumentError => xml_error
+            # not xml either, raise original exception
+            raise e
+          end
         end
-      end
-      result      
-    end
-    
-    def queue_plan
-      queued_data = nil
-      retryable(:tries => 5, :on => Exception) do
-        Net::HTTP.start(get_field('host'), get_field('port')) {|http|
-          http.use_ssl = get_field('use_ssl')
-          req = Net::HTTP::Post.new("/rest/api/latest/queue/#{get_field('project_key')}-#{get_field('plan_key')}.json", initheader = {'Accept' => 'json'})
-          req.basic_auth get_field('username'), get_field('password')
-          response = http.request(req)
-          case response.code
-            when '200'
-              queued_data = parse_response(response)
-            when '401'
-              raise "Authentication Failed"
-            else
-              raise Exception.new("Error queuing plan: #{parse_response(response)["message"]}")
-          end
-        }
+        result      
       end
       
-      queued_data
-    end
-    
-    def get_results_for_build(build)
-      result = nil
-      retryable(:tries => 5, :on => Exception) do
-        Net::HTTP.start(get_field('host'), get_field('port')) {|http|
-          http.use_ssl = get_field('use_ssl')
-          req = Net::HTTP::Get.new("/rest/api/latest/result/#{get_field('project_key')}-#{get_field('plan_key')}-#{build}.json", initheader = {'Accept' => 'json'})
-          req.basic_auth get_field('username'), get_field('password')
-          response = http.request(req)
-          
-          case response.code
-            when '200'
-              result = parse_response(response)
-            when '401'
-              raise "Authenitcation Failed"
-            else
-              raise Exception.new("Error getting results for build #{build}: #{parse_response(response)["message"]}")
-          end
-        }
+      def queue_plan
+        queued_data = nil
+        retryable(:tries => 5, :on => Exception) do
+          Net::HTTP.start(get_field('host'), get_field('port')) {|http|
+            http.use_ssl = get_field('use_ssl')
+            req = Net::HTTP::Post.new("/rest/api/latest/queue/#{get_field('project_key')}-#{get_field('plan_key')}.json", initheader = {'Accept' => 'json'})
+            req.basic_auth get_field('username'), get_field('password')
+            response = http.request(req)
+            case response.code
+              when '200'
+                queued_data = parse_response(response)
+              when '401'
+                raise "Authentication Failed"
+              else
+                raise Exception.new("Error queuing plan: #{parse_response(response)["message"]}")
+            end
+          }
+        end
+        
+        queued_data
       end
-      result  
-    end
-    
-    def wait_for_job
-      result = get_results_for_build @queued_data['buildNumber']
-      write_output "Waiting For Bamboo Build #{@queued_data['buildNumber']} Of Plan #{get_field('plan_key')}\n"
-
-      while(result.nil? or result['lifeCycleState'].downcase != "finished" )
-        sleep 5
+      
+      def get_results_for_build(build)
+        result = nil
+        retryable(:tries => 5, :on => Exception) do
+          Net::HTTP.start(get_field('host'), get_field('port')) {|http|
+            http.use_ssl = get_field('use_ssl')
+            req = Net::HTTP::Get.new("/rest/api/latest/result/#{get_field('project_key')}-#{get_field('plan_key')}-#{build}.json", initheader = {'Accept' => 'json'})
+            req.basic_auth get_field('username'), get_field('password')
+            response = http.request(req)
+            
+            case response.code
+              when '200'
+                result = parse_response(response)
+              when '401'
+                raise "Authenitcation Failed"
+              else
+                raise Exception.new("Error getting results for build #{build}: #{parse_response(response)["message"]}")
+            end
+          }
+        end
+        result  
+      end
+      
+      def wait_for_job
         result = get_results_for_build @queued_data['buildNumber']
-      end
-      write_output "Bamboo Build #{result['number']} For #{result['key']} Has LifeCycle [#{result['lifeCycleState']}] State [#{result['state']}]\n"
-      result
-    end
-    
-    def build
-      Maestro.log.info "Starting Bamboo Worker"
-      validate_fields
-
-      @queued_data = queue_plan        
-      Maestro.log.debug "Queued Bamboo Job With Result #{@queued_data.to_json}"
-      write_output "Bamboo Build Triggered With Reason #{@queued_data["triggerReason"]}\n"
-      
-      result = wait_for_job
-
-      if result["state"].downcase == "failed"
-        set_error( "Bamboo Job Returned Failed" )
+        write_output "Waiting For Bamboo Build #{@queued_data['buildNumber']} Of Plan #{get_field('plan_key')}\n"
+  
+        while(result.nil? or result['lifeCycleState'].downcase != "finished" )
+          sleep 5
+          result = get_results_for_build @queued_data['buildNumber']
+        end
+        write_output "Bamboo Build #{result['number']} For #{result['key']} Has LifeCycle [#{result['lifeCycleState']}] State [#{result['state']}]\n"
+        result
       end
       
-      Maestro.log.debug "Maestro::BambooParticipant::work complete!"
-      Maestro.log.info "***********************Completed Bamboo***************************"
+      def build
+        Maestro.log.info "Starting Bamboo Worker"
+        validate_fields
+  
+        @queued_data = queue_plan        
+        Maestro.log.debug "Queued Bamboo Job With Result #{@queued_data.to_json}"
+        write_output "Bamboo Build Triggered With Reason #{@queued_data["triggerReason"]}\n"
+        
+        result = wait_for_job
+  
+        if result["state"].downcase == "failed"
+          set_error( "Bamboo Job Returned Failed" )
+        end
+        
+        Maestro.log.debug "Maestro::BambooParticipant::work complete!"
+        Maestro.log.info "***********************Completed Bamboo***************************"
+      end
+      
     end
-    
   end
 end

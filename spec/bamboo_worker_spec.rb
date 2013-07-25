@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe MaestroDev::BambooWorker do
+describe MaestroDev::BambooPlugin::BambooWorker do
   before :all do
-    @test_participant = MaestroDev::BambooWorker.new
+    @test_participant = MaestroDev::BambooPlugin::BambooWorker.new
   end
   
   it "should queue a build" do
@@ -65,7 +65,7 @@ describe MaestroDev::BambooWorker do
   #                             'web_path' => '/'
   #                             }})
   # 
-  #   @test_participant = MaestroDev::BambooWorker.new                              
+  #   @test_participant = MaestroDev::BambooPlugin::BambooWorker.new                              
   #   @test_participant.expects(:workitem => wi.to_h).at_least_once
   # 
   #   @test_participant.build
@@ -85,7 +85,7 @@ describe MaestroDev::BambooWorker do
   #                             'web_path' => '/'
   #                             }})
   # 
-  #   @test_participant = MaestroDev::BambooWorker.new                              
+  #   @test_participant = MaestroDev::BambooPlugin::BambooWorker.new                              
   #   @test_participant.expects(:workitem => wi.to_h).at_least_once
   # 
   #   @test_participant.build
@@ -105,7 +105,7 @@ describe MaestroDev::BambooWorker do
   #                             'web_path' => '/'
   #                             }})
   # 
-  #   @test_participant = MaestroDev::BambooWorker.new                              
+  #   @test_participant = MaestroDev::BambooPlugin::BambooWorker.new                              
   #   @test_participant.expects(:workitem => wi.to_h).at_least_once
   # 
   #   @test_participant.build
@@ -126,7 +126,7 @@ describe MaestroDev::BambooWorker do
   #                             'web_path' => '/'
   #                             }})
   # 
-  #   @test_participant = MaestroDev::BambooWorker.new                              
+  #   @test_participant = MaestroDev::BambooPlugin::BambooWorker.new                              
   #   @test_participant.expects(:workitem => wi.to_h).at_least_once
   # 
   #   @test_participant.build
