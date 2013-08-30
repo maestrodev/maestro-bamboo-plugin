@@ -1,11 +1,12 @@
-[
-  {
+{
+  "image": "bamboo.png",
+  "tasks": [{
     "name": "bamboo",
     "description": "Puts A Bamboo Plan In The Build Queue",
     "license": "Apache 2.0",
     "author": "Kelly Plummer",
     "version": "updated at build time",
-    "class": "MaestroDev::BambooPlugin::BambooWorker",
+    "class": "MaestroDev::Plugin::BambooWorker",
     "type": "ruby",
     "dependencies": [],
     "task": {
@@ -68,5 +69,5 @@
       "tool_name": "Build",
       "icon" : "bamboo.png"
     }
-  }
-]
+  }]
+}

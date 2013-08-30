@@ -1,23 +1,53 @@
 require 'maestro_plugin'
+require 'maestro_common/common'#utils/retryable'
 
 module MaestroDev
-  module BambooPlugin
+  module Plugin
     class BambooWorker < Maestro::MaestroWorker
-  
+
+      def build
+        validate_fields
+
+        @queued_data = queue_plan
+
+        Maestro.log.debug "Queued Bamboo Job With Result #{@queued_data.to_json}"
+        write_output "Bamboo Build Triggered With Reason #{@queued_data["triggerReason"]}\n"
+
+        result = wait_for_job
+
+        if result["state"].downcase == "failed"
+          raise PluginError, "Bamboo Job Returned Failed"
+        end
+      end
+
+      ###########
+      # PRIVATE #
+      ###########
+      private
+
       def validate_fields
+        errors = []
+
+        @host = get_field('host', '')
+        @port = get_int_field('port')
+        @username = get_field('username', '')
+        @password = get_field('password', '')
+        @plan_key = get_field('plan_key', '')
+        @project_key = get_field('project_key', '')
+        @use_ssl = get_boolean_field('use_ssl')
+
+        errors << 'Invalid Field Set, Missing host' if @host.empty?
+        errors << 'Invalid Field Set, Missing port' if @port < 1
+        errors << 'Invalid Field Set, Missing username' if @username.empty?
+        errors << 'Invalid Field Set, Missing password' if @password.empty?
+        errors << 'Invalid Field Set, Missing plan key' if @plan_key.empty?     
+        errors << 'Invalid Field Set, Missing project key' if @project_key.empty?      
         
-        set_error('')
-        
-        raise 'Invalid Field Set, Missing host' if get_field('host').nil?
-        raise 'Invalid Field Set, Missing port' if get_field('port').nil?
-        raise 'Invalid Field Set, Missing username' if get_field('username').nil?
-        raise 'Invalid Field Set, Missing password' if get_field('password').nil?
-        raise 'Invalid Field Set, Missing plan key' if get_field('plan_key').nil?     
-        raise 'Invalid Field Set, Missing project key' if get_field('project_key').nil?      
-        raise 'Invalid Field Set, Missing use_ssl' if get_field('use_ssl').nil?            
-        
-        @scheme = get_field('use_ssl') ? 'https' : 'http'
-        set_field("web_path", "/#{get_field("web_path").andand.gsub(/^\//, '')}") unless get_field('web_path').nil? or get_field('web_path').empty?
+        @scheme = @use_ssl ? 'https' : 'http'
+        @web_path = get_field('web_path', '')
+        @web_path = "/#{@web_path.gsub(/^\//, '')}"
+
+        raise ConfigError, "Config Errors: #{errors.join(', ')}" unless errors.empty?
       end
       
       def parse_response(response)
@@ -38,17 +68,20 @@ module MaestroDev
       
       def queue_plan
         queued_data = nil
-        retryable(:tries => 5, :on => Exception) do
-          Net::HTTP.start(get_field('host'), get_field('port')) {|http|
-            http.use_ssl = get_field('use_ssl')
-            req = Net::HTTP::Post.new("/rest/api/latest/queue/#{get_field('project_key')}-#{get_field('plan_key')}.json", initheader = {'Accept' => 'json'})
-            req.basic_auth get_field('username'), get_field('password')
+        # Note - retryable block seems to mess with webmock if webmock wants to raise an exception.
+        # Have not looked deeper, but if you find this code seemingly blocking @ the http.request
+        # line, comment out the retryable wrapper and see if that displays an error
+        Maestro::Utils::retryable(:tries => 5, :on => Exception) do
+          Net::HTTP.start(@host, @port) {|http|
+            http.use_ssl = @use_ssl
+            req = Net::HTTP::Post.new("/rest/api/latest/queue/#{@project_key}-#{@plan_key}.json", initheader = {'Accept' => 'json'})
+            req.basic_auth @username, @password
             response = http.request(req)
             case response.code
               when '200'
                 queued_data = parse_response(response)
               when '401'
-                raise "Authentication Failed"
+                raise PluginError, "Authentication Failed"
               else
                 raise Exception.new("Error queuing plan: #{parse_response(response)["message"]}")
             end
@@ -60,11 +93,11 @@ module MaestroDev
       
       def get_results_for_build(build)
         result = nil
-        retryable(:tries => 5, :on => Exception) do
-          Net::HTTP.start(get_field('host'), get_field('port')) {|http|
-            http.use_ssl = get_field('use_ssl')
-            req = Net::HTTP::Get.new("/rest/api/latest/result/#{get_field('project_key')}-#{get_field('plan_key')}-#{build}.json", initheader = {'Accept' => 'json'})
-            req.basic_auth get_field('username'), get_field('password')
+        Maestro::Utils::retryable(:tries => 5, :on => Exception) do
+          Net::HTTP.start(@host, @port) {|http|
+            http.use_ssl = @use_ssl
+            req = Net::HTTP::Get.new("/rest/api/latest/result/#{@project_key}-#{@plan_key}-#{build}.json", initheader = {'Accept' => 'json'})
+            req.basic_auth @username, @password
             response = http.request(req)
             
             case response.code
@@ -82,7 +115,7 @@ module MaestroDev
       
       def wait_for_job
         result = get_results_for_build @queued_data['buildNumber']
-        write_output "Waiting For Bamboo Build #{@queued_data['buildNumber']} Of Plan #{get_field('plan_key')}\n"
+        write_output "Waiting For Bamboo Build #{@queued_data['buildNumber']} Of Plan #{@plan_key}\n"
   
         while(result.nil? or result['lifeCycleState'].downcase != "finished" )
           sleep 5
@@ -90,24 +123,6 @@ module MaestroDev
         end
         write_output "Bamboo Build #{result['number']} For #{result['key']} Has LifeCycle [#{result['lifeCycleState']}] State [#{result['state']}]\n"
         result
-      end
-      
-      def build
-        Maestro.log.info "Starting Bamboo Worker"
-        validate_fields
-  
-        @queued_data = queue_plan        
-        Maestro.log.debug "Queued Bamboo Job With Result #{@queued_data.to_json}"
-        write_output "Bamboo Build Triggered With Reason #{@queued_data["triggerReason"]}\n"
-        
-        result = wait_for_job
-  
-        if result["state"].downcase == "failed"
-          set_error( "Bamboo Job Returned Failed" )
-        end
-        
-        Maestro.log.debug "Maestro::BambooParticipant::work complete!"
-        Maestro.log.info "***********************Completed Bamboo***************************"
       end
       
     end

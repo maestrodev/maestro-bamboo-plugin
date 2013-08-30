@@ -1,14 +1,10 @@
 require 'spec_helper'
 
-describe MaestroDev::BambooPlugin::BambooWorker do
-  before :all do
-    @test_participant = MaestroDev::BambooPlugin::BambooWorker.new
-  end
-  
-  it "should queue a build" do
-    wi = {'fields' => {
-        'host' => 'localhost',
-        'port' => '8085',
+describe MaestroDev::Plugin::BambooWorker do
+  before(:each) do
+    @wi = {'fields' => {
+        'host' => 'example.com',
+        'port' => '80',
         'username' => 'bamboo',
         'password' => 'bamboo',
         'plan_key' => 'CP',
@@ -16,42 +12,26 @@ describe MaestroDev::BambooPlugin::BambooWorker do
         'use_ssl' => false,
         'web_path' => '/'
     }}
-                                 
-       @test_participant.expects(:workitem => wi).at_least_once
+  end
+
+  it "should queue a build" do
+    stub_request(:post, "http://bamboo:bamboo@example.com/rest/api/latest/queue/PROJECTKEY-CP.json").to_return(:body => "{\"build_number\":2}")    
+    stub_request(:get, "http://bamboo:bamboo@example.com/rest/api/latest/result/PROJECTKEY-CP-.json").to_return(:body => {"number" => 2, "lifeCycleState" => "Finished", "state" => "Successful"}.to_json)
+
+    subject.perform(:build, @wi)     
        
-       @test_participant.expects(:queue_plan => {"buildNumber" => 2})
-       @test_participant.expects(:get_results_for_build => {"number" => 2, "lifeCycleState" => "Finished", "state" => "Successful"})
-       
-       @test_participant.expects(:wait_for_job => {"number" => 2, "lifeCycleState" => "Finished", "state" => "Successful"})
+    @wi['fields']['__error__'].should be_nil
+  end
      
-       @test_participant.build
-       
-       wi['fields']['__error__'].should eql('')
-     end
+  it "should set error on error" do
+  puts "t2"
+    stub_request(:post, "http://bamboo:bamboo@example.com/rest/api/latest/queue/PROJECTKEY-CP.json").to_return(:body => "{\"build_number\":2}")    
+    stub_request(:get, "http://bamboo:bamboo@example.com/rest/api/latest/result/PROJECTKEY-CP-.json").to_return(:body => {"number" => 2, "lifeCycleState" => "Finished", "state" => "Failed"}.to_json)
      
-     it "should set error on error" do
-       wi = {'fields' => {
-           'host' => 'localhost',
-           'port' => '8085',
-           'username' => 'bamboo',
-           'password' => 'bamboo',
-           'plan_key' => 'CP',
-           'project_key' => 'PROJECTKEY',
-           'use_ssl' => false,
-           'web_path' => '/'
-       }}
-                                 
-       @test_participant.expects(:workitem => wi).at_least_once
+    subject.perform(:build, @wi)
        
-       @test_participant.expects(:queue_plan => {"buildNumber" => 2})
-       @test_participant.expects(:get_results_for_build => {"number" => 2, "lifeCycleState" => "Finished", "state" => "Failed"})
-       
-       @test_participant.expects(:wait_for_job => {"number" => 2, "lifeCycleState" => "Finished", "state" => "Failed"})
-     
-       @test_participant.build
-       
-       wi['fields']['__error__'].should eql("Bamboo Job Returned Failed")
-     end
+    @wi['fields']['__error__'].should eql("Bamboo Job Returned Failed")
+  end
   
   # it "should queue a build for real" do
   #   wi = Ruote::Workitem.new({'fields' => { 

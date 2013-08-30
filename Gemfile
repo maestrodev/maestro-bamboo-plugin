@@ -1,7 +1,8 @@
 source "https://rubygems.org"
 
 #dependencies
-gem 'maestro_plugin'
+gem 'maestro_common'
+gem 'maestro_plugin', '>=0.0.17'
 gem 'bamboo-client', '>=0.0.9'
 
 group :development do
@@ -9,8 +10,7 @@ group :development do
 end
 
 group :test do
-  gem 'andand'
   gem 'rspec'
-  gem 'rspec-core'
   gem 'mocha'
+  gem 'webmock'
 end
