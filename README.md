@@ -1,4 +1,6 @@
 # maestro-bamboo-plugin
+[![Code Climate](https://codeclimate.com/github/maestrodev/maestro-bamboo-plugin.png)](https://codeclimate.com/github/maestrodev/maestro-bamboo-plugin)
+
 Maestro plugin providing a "task" to control Bamboo. This
 plugin is a Ruby-based deployable that gets delivered as a ZIP file.
 
